@@ -1,5 +1,5 @@
-# Set platform to iOS 14.0 as required by the health plugin
-platform :ios, '14.0'
+# Set platform to iOS 15.0 as required by the Firebase packages
+platform :ios, '15.0'
 
 # Import Flutter helper functions dynamically using the Flutter SDK path from Generated.xcconfig
 flutter_xcconfig = File.expand_path(File.join('Flutter', 'Generated.xcconfig'), File.dirname(__FILE__))
@@ -31,8 +31,8 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
-      # Force the deployment target of all pods to 14.0 to match the main target
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      # Force the deployment target of all pods to 15.0 to match the main target
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
     end
   end
 end
