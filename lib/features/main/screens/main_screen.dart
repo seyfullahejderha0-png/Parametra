@@ -31,16 +31,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       await _checkPrivacy();
+      if (!mounted) return;
       _checkProfileSetup();
+      if (!mounted) return;
       ref.read(profileServiceProvider).recordUserActivity();
     });
   }
 
   Future<void> _checkPrivacy() async {
     final profile = await ref.read(profileServiceProvider).getProfile().first;
+    if (!mounted) return;
     if (profile != null && !profile.hasAcceptedPrivacy) {
-      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const PrivacyConsentScreen()),
       );
@@ -51,9 +54,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     // Profil verisini bir kez kontrol et
     final profile = await ref.read(profileServiceProvider).getProfile().first;
     
+    if (!mounted) return;
     if (profile == null || profile.firstName.isEmpty) {
-      if (!mounted) return;
-      
+      // ref'i async gap öncesinde yerel değişkene alıyoruz
+      final profileService = ref.read(profileServiceProvider);
+
       final firstNameController = TextEditingController();
       final lastNameController = TextEditingController();
       bool isSubmitting = false;
@@ -133,7 +138,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                           });
 
                           try {
-                            await ref.read(profileServiceProvider).updateProfile(
+                            await profileService.updateProfile(
                               firstName: firstName,
                               lastName: lastNameController.text.trim(),
                             );
