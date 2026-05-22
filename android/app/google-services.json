@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "563451378875",
+    "project_id": "parametre-cf052",
+    "storage_bucket": "parametre-cf052.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563451378875:android:cf362daeffc4b64f943d9e",
+        "android_client_info": {
+          "package_name": "com.kisisel.asistan.kisisel_asistan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "563451378875-cgelrduevtvoooprjp872chclh5kfjmq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCYeCkvLI-HvlQhpIX2zwcZALDS89MFoU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "563451378875-cgelrduevtvoooprjp872chclh5kfjmq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
