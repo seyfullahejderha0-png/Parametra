@@ -8,6 +8,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../onboarding/screens/privacy_consent_screen.dart';
 import '../../insights/screens/insights_dashboard_screen.dart';
 import '../../reports/screens/reports_screen.dart';
+import '../../../core/utils/ui_helpers.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -55,6 +56,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       
       final firstNameController = TextEditingController();
       final lastNameController = TextEditingController();
+      bool isSubmitting = false;
 
       showModalBottomSheet(
         context: context,
@@ -62,73 +64,115 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         isDismissible: false,
         enableDrag: false,
         backgroundColor: Colors.transparent,
-        builder: (context) => Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 32,
-            bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.l10n('welcome_emoji'),
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                context.l10n('profile_setup_desc'),
-                style: const TextStyle(fontSize: 14, color: Colors.white54),
-              ),
-              const SizedBox(height: 32),
-              TextField(
-                controller: firstNameController,
-                decoration: InputDecoration(
-                  labelText: context.l10n('first_name'),
-                  prefixIcon: const Icon(Icons.person_outline),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        builder: (context) => StatefulBuilder(
+          builder: (context, setBottomSheetState) => Container(
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            padding: EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 32,
+              bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom + 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n('welcome_emoji'),
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: lastNameController,
-                decoration: InputDecoration(
-                  labelText: context.l10n('last_name'),
-                  prefixIcon: const Icon(Icons.person_outline),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.05),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                const SizedBox(height: 8),
+                Text(
+                  context.l10n('profile_setup_desc'),
+                  style: const TextStyle(fontSize: 14, color: Colors.white54),
                 ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () async {
-                  if (firstNameController.text.isNotEmpty) {
-                    await ref.read(profileServiceProvider).updateProfile(
-                      firstName: firstNameController.text,
-                      lastName: lastNameController.text,
-                    );
-                    if (context.mounted) Navigator.pop(context);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.aiColor,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
+                const SizedBox(height: 32),
+                TextField(
+                  controller: firstNameController,
+                  enabled: !isSubmitting,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: context.l10n('first_name'),
+                    labelStyle: const TextStyle(color: Colors.white54),
+                    prefixIcon: const Icon(Icons.person_outline, color: Colors.white54),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.05),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
                 ),
-                child: Text(context.l10n('let_start'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextField(
+                  controller: lastNameController,
+                  enabled: !isSubmitting,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: context.l10n('last_name'),
+                    labelStyle: const TextStyle(color: Colors.white54),
+                    prefixIcon: const Icon(Icons.person_outline, color: Colors.white54),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.05),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final firstName = firstNameController.text.trim();
+                          if (firstName.isEmpty) {
+                            UIHelpers.showErrorSnackBar(context, 'Lütfen adınızı girin.');
+                            return;
+                          }
+
+                          setBottomSheetState(() {
+                            isSubmitting = true;
+                          });
+
+                          try {
+                            await ref.read(profileServiceProvider).updateProfile(
+                              firstName: firstName,
+                              lastName: lastNameController.text.trim(),
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              UIHelpers.showSuccessSnackBar(context, 'Profiliniz başarıyla oluşturuldu!');
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              setBottomSheetState(() {
+                                isSubmitting = false;
+                              });
+                              UIHelpers.showErrorSnackBar(context, 'Hata oluştu: ${e.toString()}');
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.aiColor,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 0,
+                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Text(
+                          context.l10n('let_start'),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       );
