@@ -78,6 +78,8 @@
 	<string>Sesinizi metne dönüştürmek, ses kaydı yapmak veya sesli notlar oluşturmak için mikrofonunuza erişim izni gereklidir.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Konuşmalarınızı anlık olarak metne dönüştürüp asistanınızla sesli iletişim kurabilmek için ses tanıma izni gereklidir.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Size en yakın sağlık merkezlerini gösterebilmek veya yerel bildirimlerinizi bulunduğunuz bölgeye göre doğru şekilde planlayabilmek için konum erişimi gereklidir.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
