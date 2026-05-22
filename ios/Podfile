@@ -1,6 +1,9 @@
 # Set platform to iOS 14.0 as required by the health plugin
 platform :ios, '14.0'
 
+# Import Flutter helper functions
+require_relative 'Flutter/podhelper.rb'
+
 # CocoaPods analytics sends network stats so disable it.
 install! 'cocoapods', :deterministic_uuids => false
 
