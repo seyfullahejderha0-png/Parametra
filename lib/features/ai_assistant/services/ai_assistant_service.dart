@@ -62,7 +62,9 @@ final aiAssistantServiceProvider = Provider((ref) => AIAssistantService(ref));
 class AIAssistantService {
   final Ref _ref;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  static const String _apiKey = 'AIzaSyD2ryn22Zkj9P4QHJPKmk8HlaeM7JmqXm4';
+  // API anahtarı --dart-define=GEMINI_API_KEY=... ile build sırasında enjekte edilir.
+  // Koda asla doğrudan yazılmamalı (GitHub'a push edilince Google iptal eder).
+  static const String _apiKey = String.fromEnvironment('GEMINI_API_KEY');
 
   AIAssistantService(this._ref);
 
