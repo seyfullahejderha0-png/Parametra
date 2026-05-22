@@ -1,8 +1,16 @@
 # Set platform to iOS 14.0 as required by the health plugin
 platform :ios, '14.0'
 
-# Import Flutter helper functions
-require_relative 'Flutter/podhelper.rb'
+# Import Flutter helper functions dynamically using the Flutter SDK path from Generated.xcconfig
+flutter_xcconfig = File.expand_path(File.join('Flutter', 'Generated.xcconfig'), File.dirname(__FILE__))
+if File.exist?(flutter_xcconfig)
+  File.foreach(flutter_xcconfig) do |line|
+    matches = line.match(/FLUTTER_ROOT=(.*)/)
+    if matches
+      require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper.rb'), matches[1])
+    end
+  end
+end
 
 # CocoaPods analytics sends network stats so disable it.
 install! 'cocoapods', :deterministic_uuids => false
