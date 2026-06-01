@@ -11,13 +11,8 @@ class ExternalHealthService {
 
   ExternalHealthService(this._ref);
 
-  // Desteklenen veri tipleri
   static const List<HealthDataType> _types = [
-    HealthDataType.STEPS,
     HealthDataType.WATER,
-    HealthDataType.SLEEP_SESSION,
-    HealthDataType.HEART_RATE,
-    HealthDataType.WORKOUT,
   ];
 
   Future<bool> authorize() async {
@@ -66,18 +61,7 @@ class ExternalHealthService {
     }
   }
 
-  Future<int> getStepsToday() async {
-    final now = DateTime.now();
-    final midnight = DateTime(now.year, now.month, now.day);
-    
-    try {
-      final steps = await _health.getTotalStepsInInterval(midnight, now);
-      return steps ?? 0;
-    } catch (e) {
-      print("Steps Fetch Error: $e");
-      return 0;
-    }
-  }
+
 
   Future<double> getWaterToday() async {
     // Health Connect/Kit'ten su verisi çekme

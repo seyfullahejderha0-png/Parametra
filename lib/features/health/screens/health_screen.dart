@@ -780,9 +780,7 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
         return;
       }
 
-      // 1. Adımları çek (Opsiyonel: Eğer aktivite olarak kaydetmek istersen)
-      final steps = await externalService.getStepsToday();
-      
+
       // 2. Su verisini çek ve senkronize et
       final externalWater = await externalService.getWaterToday();
       if (externalWater > 0) {
