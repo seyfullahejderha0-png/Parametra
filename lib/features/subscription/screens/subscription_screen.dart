@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -190,8 +191,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         type: SubscriptionType.premium,
         title: context.l10n('subscription_premium'),
         subtitle: isTr ? 'Sınırsız kayıt, analiz ve dışa aktarım' : 'Unlimited entries, analysis & export',
-        monthlyPrice: isTr ? '₺29,99' : '\$2.99',
-        yearlyPrice: isTr ? '₺269,99' : '\$19.99',
+        monthlyPrice: iap.getPrice(IapService.premiumMonthly, isTr ? '₺29,99' : '\$2.99'),
+        yearlyPrice: iap.getPrice(IapService.premiumYearly, isTr ? '₺269,99' : '\$19.99'),
         gradient: const LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         features: [
           _Feat(Icons.all_inclusive, context.l10n('unlimited_entries')),
@@ -436,12 +437,6 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   }
 
   void _subscribe(SubscriptionType type) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.white)),
-    );
-
     final productId = switch (type) {
       SubscriptionType.premium => _isYearly ? IapService.premiumYearly : IapService.premiumMonthly,
       SubscriptionType.platinum => _isYearly ? IapService.platinumYearly : IapService.platinumMonthly,
@@ -449,19 +444,60 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       _ => IapService.premiumMonthly,
     };
 
-    await ref.read(subscriptionServiceProvider).updateSubscription(type, days: _isYearly ? 365 : 30, sku: productId);
+    final iap = ref.read(iapServiceProvider);
 
-    if (mounted) {
-      Navigator.pop(context);
-      final typeName = type == SubscriptionType.platinumFamily
-          ? 'Premium AI Aile'
-          : type == SubscriptionType.platinum
-              ? 'Premium AI'
-              : 'Premium';
-      UIHelpers.showSuccessSnackBar(
-        context,
-        context.l10n('sub_success_msg').replaceFirst('{type}', typeName),
+    if (iap.isStoreAvailable) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.white)),
       );
+      try {
+        await iap.buyProduct(productId);
+      } catch (e) {
+        debugPrint("Purchase Error: $e");
+        if (mounted) {
+          UIHelpers.showErrorSnackBar(
+            context,
+            Localizations.localeOf(context).languageCode == 'tr'
+                ? 'Satın alma işlemi başlatılamadı: $e'
+                : 'Could not initiate purchase: $e',
+          );
+        }
+      } finally {
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      }
+    } else {
+      // Mağaza bağlantısı yoksa (örneğin simülatör veya test modundayken)
+      if (kDebugMode || kProfileMode) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+        );
+        await ref.read(subscriptionServiceProvider).updateSubscription(type, days: _isYearly ? 365 : 30, sku: productId);
+        if (mounted) {
+          Navigator.pop(context);
+          final typeName = type == SubscriptionType.platinumFamily
+              ? 'Premium AI Aile'
+              : type == SubscriptionType.platinum
+                  ? 'Premium AI'
+                  : 'Premium';
+          UIHelpers.showSuccessSnackBar(
+            context,
+            context.l10n('sub_success_msg').replaceFirst('{type}', typeName),
+          );
+        }
+      } else {
+        UIHelpers.showErrorSnackBar(
+          context,
+          Localizations.localeOf(context).languageCode == 'tr'
+              ? 'Uygulama içi satın alma mağazasına bağlanılamadı. Lütfen daha sonra tekrar deneyin.'
+              : 'Failed to connect to the in-app purchase store. Please try again later.',
+        );
+      }
     }
   }
 }
