@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -1139,9 +1140,50 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: sub.isSupporter ? null : () async {
-              await ref.read(subscriptionServiceProvider).handlePurchaseSuccess(IapService.developerSupport);
-              if (mounted) {
-                UIHelpers.showSuccessSnackBar(context, context.l10n('support_success_msg'));
+              final iap = ref.read(iapServiceProvider);
+              if (iap.isStoreAvailable) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+                );
+                try {
+                  await iap.buyProduct(IapService.developerSupport);
+                } catch (e) {
+                  debugPrint("Developer Support Purchase Error: $e");
+                  if (mounted) {
+                    UIHelpers.showErrorSnackBar(
+                      context,
+                      Localizations.localeOf(context).languageCode == 'tr'
+                          ? 'Ödeme işlemi başlatılamadı: $e'
+                          : 'Could not initiate payment: $e',
+                    );
+                  }
+                } finally {
+                  if (mounted) {
+                    Navigator.pop(context);
+                  }
+                }
+              } else {
+                if (kDebugMode || kProfileMode) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+                  );
+                  await ref.read(subscriptionServiceProvider).handlePurchaseSuccess(IapService.developerSupport);
+                  if (mounted) {
+                    Navigator.pop(context);
+                    UIHelpers.showSuccessSnackBar(context, context.l10n('support_success_msg'));
+                  }
+                } else {
+                  UIHelpers.showErrorSnackBar(
+                    context,
+                    Localizations.localeOf(context).languageCode == 'tr'
+                        ? 'Mağazaya bağlanılamadı. Lütfen daha sonra tekrar deneyin.'
+                        : 'Failed to connect to the store. Please try again later.',
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(
