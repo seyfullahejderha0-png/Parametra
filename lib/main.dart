@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'app.dart';
 import 'core/services/notification_providers.dart';
 import 'core/services/notification_manager.dart';
+import 'features/subscription/services/iap_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,11 @@ void main() async {
 
   final container = ProviderContainer();
   
+  // RevenueCat başlatma
+  container.read(iapServiceProvider).initialize().catchError((e) {
+    debugPrint("RevenueCat Init Error: $e");
+  });
+
   // Bildirim servisini başlat ve ardından hatırlatıcıları kur
   container.read(notificationServiceProvider).init().then((_) {
     container.read(notificationManagerProvider).initAllReminders();

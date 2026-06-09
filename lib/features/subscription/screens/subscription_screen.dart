@@ -99,7 +99,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
                 // Plan kartları (yatay kaydırılabilir)
                 Expanded(
-                  child: _buildPlanCards(isTr, subData),
+                  child: _isLoadingProducts
+                      ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                      : _buildPlanCards(isTr, subData),
                 ),
 
                 // Sayfa göstergesi
@@ -416,7 +418,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           ],
         ),
         TextButton(
-          onPressed: () {},
+          onPressed: _restorePurchases,
           child: Text(context.l10n('restore_purchases'), style: const TextStyle(color: Colors.white38, fontSize: 12)),
         ),
       ],
@@ -454,19 +456,28 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       );
       try {
         await iap.buyProduct(productId);
+        if (mounted) {
+          Navigator.pop(context); // Diyaloğu kapat
+          final typeName = type == SubscriptionType.platinumFamily
+              ? 'Premium AI Aile'
+              : type == SubscriptionType.platinum
+                  ? 'Premium AI'
+                  : 'Premium';
+          UIHelpers.showSuccessSnackBar(
+            context,
+            context.l10n('sub_success_msg').replaceFirst('{type}', typeName),
+          );
+        }
       } catch (e) {
         debugPrint("Purchase Error: $e");
         if (mounted) {
+          Navigator.pop(context); // Diyaloğu kapat
           UIHelpers.showErrorSnackBar(
             context,
             Localizations.localeOf(context).languageCode == 'tr'
-                ? 'Satın alma işlemi başlatılamadı: $e'
-                : 'Could not initiate purchase: $e',
+                ? 'Satın alma işlemi sırasında bir hata oluştu: $e'
+                : 'An error occurred during the purchase: $e',
           );
-        }
-      } finally {
-        if (mounted) {
-          Navigator.pop(context);
         }
       }
     } else {
@@ -496,6 +507,40 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           Localizations.localeOf(context).languageCode == 'tr'
               ? 'Uygulama içi satın alma mağazasına bağlanılamadı. Lütfen daha sonra tekrar deneyin.'
               : 'Failed to connect to the in-app purchase store. Please try again later.',
+        );
+      }
+    }
+  }
+
+  void _restorePurchases() async {
+    final iap = ref.read(iapServiceProvider);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+    );
+    
+    try {
+      await iap.restorePurchases();
+      if (mounted) {
+        Navigator.pop(context); // Diyaloğu kapat
+        UIHelpers.showSuccessSnackBar(
+          context,
+          Localizations.localeOf(context).languageCode == 'tr'
+              ? 'Satın alımlar başarıyla geri yüklendi.'
+              : 'Purchases restored successfully.',
+        );
+      }
+    } catch (e) {
+      debugPrint("Restore Error: $e");
+      if (mounted) {
+        Navigator.pop(context); // Diyaloğu kapat
+        UIHelpers.showErrorSnackBar(
+          context,
+          Localizations.localeOf(context).languageCode == 'tr'
+              ? 'Satın alımları geri yükleme sırasında bir hata oluştu: $e'
+              : 'An error occurred during restore: $e',
         );
       }
     }

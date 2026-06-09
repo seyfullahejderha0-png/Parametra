@@ -1021,16 +1021,91 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n('cancel').toUpperCase())),
           TextButton(
-            onPressed: () async {
-              await ref.read(profileServiceProvider).deleteUserData();
-              if (context.mounted) {
-                _clearAllUserDataAndNavigate(context, ref);
-              }
+            onPressed: () {
+              Navigator.pop(context); // Close confirmation dialog
+              _showDeletionProgressDialog(context, ref);
             }, 
             child: Text(context.l10n('delete_label').toUpperCase(), style: const TextStyle(color: Colors.redAccent))
           ),
         ],
       ),
+    );
+  }
+
+  void _showDeletionProgressDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        double progress = 0.0;
+        bool started = false;
+        
+        return PopScope(
+          canPop: false,
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              if (!started) {
+                started = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  try {
+                    await ref.read(profileServiceProvider).deleteUserData(
+                      onProgress: (p) {
+                        setState(() {
+                          progress = p;
+                        });
+                      },
+                    );
+                    if (dialogContext.mounted) {
+                      Navigator.pop(dialogContext); // Close progress dialog
+                      _clearAllUserDataAndNavigate(context, ref);
+                    }
+                  } catch (e) {
+                    if (dialogContext.mounted) {
+                      Navigator.pop(dialogContext);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Hata: $e')),
+                      );
+                    }
+                  }
+                });
+              }
+              
+              return AlertDialog(
+                backgroundColor: AppColors.surface,
+                title: Text(
+                  context.l10n('deleting_account_progress') ?? 'Hesap ve veriler siliniyor...',
+                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.l10n('do_not_close_app_warning') ?? 'Lütfen bu ekranı kapatmayın veya geri tuşuna basmayın.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                    const SizedBox(height: 24),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: Colors.white10,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                        minHeight: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '${(progress * 100).toInt()}%',
+                      style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

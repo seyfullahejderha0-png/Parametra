@@ -172,18 +172,29 @@ class ProfileService {
     }, SetOptions(merge: true));
   }
 
-  Future<void> deleteUserData() async {
+  Future<void> deleteUserData({void Function(double progress)? onProgress}) async {
     if (userId == null) return;
     
     final collections = ['finance', 'debts', 'goals', 'notes', 'smoking', 'health', 'medication', 'settings', 'subscription', 'badges', 'ai_chat', 'ai_usage'];
+    final totalSteps = collections.length + 2; // collections + user doc delete + auth delete
+    int currentStep = 0;
+    
     for (final col in collections) {
       final snapshot = await _userDoc.collection(col).get();
       for (final doc in snapshot.docs) {
         await doc.reference.delete();
       }
+      currentStep++;
+      if (onProgress != null) {
+        onProgress(currentStep / totalSteps);
+      }
     }
     
     await _userDoc.delete();
+    currentStep++;
+    if (onProgress != null) {
+      onProgress(currentStep / totalSteps);
+    }
 
     try {
       await _firestore.terminate();
@@ -196,6 +207,10 @@ class ProfileService {
       await _auth.currentUser?.delete();
     } catch (e) {
       await _auth.signOut();
+    }
+    currentStep++;
+    if (onProgress != null) {
+      onProgress(currentStep / totalSteps);
     }
   }
 
