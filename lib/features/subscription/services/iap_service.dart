@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +9,7 @@ import '../../../core/utils/app_constants.dart';
 import '../models/subscription_model.dart';
 import '../../auth/services/auth_service.dart';
 
-final iapServiceProvider = ChangeNotifierProvider((ref) => IapService(ref));
+final iapServiceProvider = ChangeNotifierProvider<IapService>((ref) => IapService(ref));
 
 class IapService extends ChangeNotifier {
   final Ref _ref;
