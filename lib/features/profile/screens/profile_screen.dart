@@ -1188,6 +1188,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
   Widget _buildDeveloperSupportCard(ThemeData theme, SubscriptionData? sub) {
     if (sub == null) return const SizedBox.shrink();
+    final iapState = ref.watch(iapServiceProvider);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1273,7 +1274,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Text(sub.isSupporter ? context.l10n('already_supported') : context.l10n('support_now')),
                 if (!sub.isSupporter)
                   Text(
-                    ref.read(iapServiceProvider).getPrice(IapService.developerSupport, Localizations.localeOf(context).languageCode == 'tr' ? '₺29,99' : '\$1.99'),
+                    iapState.getPrice(IapService.developerSupport, Localizations.localeOf(context).languageCode == 'tr' ? '₺29,99' : '\$1.99'),
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.white.withOpacity(0.8)),
                   ),
               ],

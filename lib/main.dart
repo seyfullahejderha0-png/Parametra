@@ -19,7 +19,7 @@ void main() async {
 
   final container = ProviderContainer();
   
-  // RevenueCat başlatma
+  // RevenueCat initialization
   container.read(iapServiceProvider).initialize().catchError((e) {
     debugPrint("RevenueCat Init Error: $e");
   });

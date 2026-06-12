@@ -8,9 +8,9 @@ import '../../../core/utils/app_constants.dart';
 import '../models/subscription_model.dart';
 import '../../auth/services/auth_service.dart';
 
-final iapServiceProvider = Provider((ref) => IapService(ref));
+final iapServiceProvider = ChangeNotifierProvider((ref) => IapService(ref));
 
-class IapService {
+class IapService extends ChangeNotifier {
   final Ref _ref;
   List<StoreProduct> products = [];
   bool isStoreAvailable = false;
@@ -97,6 +97,7 @@ class IapService {
     } catch (e) {
       debugPrint("RevenueCat Initialization Error: $e");
     }
+    notifyListeners();
   }
 
   void _setupAuthListener() {
@@ -164,10 +165,28 @@ class IapService {
   Future<void> buyProduct(String id) async {
     if (!isStoreAvailable) throw Exception("Store is not available");
     final resolvedId = resolveProductId(id);
-    final product = products.firstWhere(
-      (p) => p.identifier == resolvedId,
-      orElse: () => throw Exception("Product $resolvedId not found in store products. Available: ${products.map((p) => p.identifier).toList()}"),
-    );
+    StoreProduct? product;
+    if (products.isNotEmpty) {
+      try {
+        product = products.firstWhere((p) => p.identifier == resolvedId);
+      } catch (_) {
+        product = null;
+      }
+    }
+    if (product == null) {
+      product = StoreProduct(
+        resolvedId,
+        '',
+        '',
+        0,
+        '',
+        '',
+        introductoryPrice: null,
+        discounts: [],
+        subscriptionPeriod: null,
+        productCategory: ProductCategory.nonSubscription,
+      );
+    }
     final customerInfo = await Purchases.purchaseStoreProduct(product);
     await syncSubscriptionWithCustomerInfo(customerInfo);
   }
@@ -256,5 +275,10 @@ class IapService {
 
     await subDoc.set(updatedData.toMap());
     debugPrint("RevenueCat: Synced subscription status to Firestore (Type: ${type.name}, Supporter: ${isSupporter || currentSupporter})");
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }
