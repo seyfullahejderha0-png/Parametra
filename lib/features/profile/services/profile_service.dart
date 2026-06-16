@@ -128,7 +128,6 @@ class ProfileService {
       'preferredCurrency': currency,
     }, SetOptions(merge: true));
   }
-
   Future<void> recordUserActivity() async {
     if (userId == null) return;
     final platform = Platform.isAndroid ? 'Android' : (Platform.isIOS ? 'iOS' : 'Web');
@@ -136,6 +135,34 @@ class ProfileService {
       'lastLogin': FieldValue.serverTimestamp(),
       'platform': platform,
     }, SetOptions(merge: true));
+  }
+
+  Future<void> initializeProfileIfNeeded(User user) async {
+    if (userId == null) return;
+    try {
+      final doc = await _userDoc.get();
+      if (!doc.exists || (doc.data() as Map<String, dynamic>?)?['firstName'] == null || ((doc.data() as Map<String, dynamic>?)?['firstName'] as String).isEmpty) {
+        String firstName = '';
+        String lastName = '';
+        if (user.displayName != null && user.displayName!.isNotEmpty) {
+          final parts = user.displayName!.split(' ');
+          firstName = parts.first;
+          if (parts.length > 1) {
+            lastName = parts.sublist(1).join(' ');
+          }
+        }
+        await _userDoc.set({
+          'firstName': firstName,
+          'lastName': lastName,
+          'email': user.email,
+          if (user.photoURL != null) 'photoUrl': user.photoURL,
+          'preferredCurrency': 'TRY',
+          'hasAcceptedPrivacy': true,
+        }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      print("Profile Initialization Error: $e");
+    }
   }
 
   Future<void> updateNotificationPreference(String module, bool value) async {

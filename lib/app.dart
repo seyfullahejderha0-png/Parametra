@@ -26,6 +26,7 @@ class ParametraApp extends ConsumerWidget {
       final user = next.value;
       if (user != null) {
         ref.read(profileServiceProvider).recordUserActivity();
+        ref.read(profileServiceProvider).initializeProfileIfNeeded(user);
       }
     });
 

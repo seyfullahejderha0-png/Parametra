@@ -68,7 +68,16 @@ class AuthService {
         accessToken: credential.authorizationCode,
       );
 
-      return await _auth.signInWithCredential(oauthCredential);
+      final userCredential = await _auth.signInWithCredential(oauthCredential);
+
+      if (credential.givenName != null || credential.familyName != null) {
+        final displayName = '${credential.givenName ?? ''} ${credential.familyName ?? ''}'.trim();
+        if (displayName.isNotEmpty) {
+          await userCredential.user?.updateDisplayName(displayName);
+        }
+      }
+
+      return userCredential;
     } catch (e) {
       rethrow;
     }

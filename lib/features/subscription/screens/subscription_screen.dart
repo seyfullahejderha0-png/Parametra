@@ -7,6 +7,7 @@ import '../models/subscription_model.dart';
 import '../services/subscription_service.dart';
 import '../services/iap_service.dart';
 import '../../../core/utils/ui_helpers.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
   const SubscriptionScreen({super.key});
@@ -407,21 +408,49 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   }
 
   Widget _buildFooter() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.security_rounded, color: Colors.white24, size: 14),
-            const SizedBox(width: 6),
-            Text(context.l10n('secure_payment_msg'), style: const TextStyle(color: Colors.white24, fontSize: 11)),
-          ],
-        ),
-        TextButton(
-          onPressed: _restorePurchases,
-          child: Text(context.l10n('restore_purchases'), style: const TextStyle(color: Colors.white38, fontSize: 12)),
-        ),
-      ],
+    final isTr = Localizations.localeOf(context).languageCode == 'tr';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.security_rounded, color: Colors.white24, size: 14),
+              const SizedBox(width: 6),
+              Text(context.l10n('secure_payment_msg'), style: const TextStyle(color: Colors.white24, fontSize: 11)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isTr
+                ? 'Abonelik otomatik olarak yenilenir. Satın alma onaylandığında ödeme iTunes Hesabınızdan tahsil edilecektir. Abonelik, cari dönemin bitiminden en az 24 saat önce otomatik yenileme kapatılmadığı sürece otomatik olarak yenilenir. Cari dönemin sonundan 24 saat önce yenileme ücreti hesabınızdan tahsil edilecektir. Aboneliğinizi istediğiniz zaman App Store Hesap Ayarlarınızdan yönetebilirsiniz.'
+                : 'Subscription automatically renews. Payment will be charged to iTunes Account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period. Account will be charged for renewal within 24-hours prior to the end of the current period. You can manage your subscription anytime in your App Store Account Settings.',
+            style: const TextStyle(color: Colors.white24, fontSize: 9),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () => launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')),
+                child: Text(isTr ? 'Kullanım Koşulları (EULA)' : 'Terms of Use (EULA)', style: const TextStyle(color: Colors.white38, fontSize: 11, decoration: TextDecoration.underline)),
+              ),
+              const Text('|', style: TextStyle(color: Colors.white24, fontSize: 11)),
+              TextButton(
+                onPressed: () => launchUrl(Uri.parse('https://parametra.ai/privacy')),
+                child: Text(isTr ? 'Gizlilik Politikası' : 'Privacy Policy', style: const TextStyle(color: Colors.white38, fontSize: 11, decoration: TextDecoration.underline)),
+              ),
+              const Text('|', style: TextStyle(color: Colors.white24, fontSize: 11)),
+              TextButton(
+                onPressed: _restorePurchases,
+                child: Text(context.l10n('restore_purchases'), style: const TextStyle(color: Colors.white38, fontSize: 11, decoration: TextDecoration.underline)),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
