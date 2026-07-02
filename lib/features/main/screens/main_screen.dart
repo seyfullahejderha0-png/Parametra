@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../dashboard/dashboard_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../profile/services/profile_service.dart';
@@ -55,6 +56,28 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final profile = await ref.read(profileServiceProvider).getProfile().first;
     
     if (!mounted) return;
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isSocialLogin = currentUser?.providerData.any(
+      (info) => info.providerId == 'apple.com' || info.providerId == 'google.com'
+    ) ?? false;
+
+    if (isSocialLogin) {
+      if (profile == null || profile.firstName.isEmpty) {
+        String defaultName = 'User';
+        if (currentUser?.email != null && currentUser!.email!.contains('@')) {
+          defaultName = currentUser.email!.split('@').first;
+        } else if (currentUser?.displayName != null && currentUser!.displayName!.isNotEmpty) {
+          defaultName = currentUser.displayName!;
+        }
+        await ref.read(profileServiceProvider).updateProfile(
+          firstName: defaultName,
+          lastName: '',
+        );
+      }
+      return;
+    }
+
     if (profile == null || profile.firstName.isEmpty) {
       // ref'i async gap öncesinde yerel değişkene alıyoruz
       final profileService = ref.read(profileServiceProvider);
