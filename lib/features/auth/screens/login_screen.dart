@@ -171,6 +171,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   
+                  const SizedBox(height: 14),
+                  
+                  // Guest Login Option (Prominent & Upper placement)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: _signInAnonymously,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.aiColor, width: 2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Text(
+                        Localizations.localeOf(context).languageCode == 'tr'
+                            ? 'Kayıt Olmadan Keşfet 🚀'
+                            : 'Explore as Guest 🚀',
+                        style: const TextStyle(
+                          color: AppColors.aiColor,
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
                   const SizedBox(height: 12),
                   
                   // Toggle Login/Signup
@@ -214,20 +239,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onTap: _signInWithApple,
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: _signInAnonymously,
-                    child: Text(
-                      Localizations.localeOf(context).languageCode == 'tr'
-                          ? 'Kayıt Olmadan Keşfet 🚀'
-                          : 'Explore as Guest 🚀',
-                      style: const TextStyle(
-                        color: AppColors.aiColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
