@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart';
@@ -85,6 +86,19 @@ class _MedicationScreenState extends ConsumerState<MedicationScreen> {
         onPressed: () async {
           final canAdd = await ref.read(subscriptionServiceProvider).canAddEntry('medication');
           if (!canAdd && mounted) {
+            final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+            if (isAnonymous) {
+              await UIHelpers.showGuestLimitDialog(
+                context: context,
+                title: Localizations.localeOf(context).languageCode == 'tr'
+                    ? 'Verilerini Yedekle 🚀'
+                    : 'Backup Your Data 🚀',
+                description: Localizations.localeOf(context).languageCode == 'tr'
+                    ? 'Misafir modunda 3 ilaç limitine ulaştın. İlaç listeni kaybetmemek ve sınırsız devam etmek için hesabını şimdi kaydet!'
+                    : 'You reached the limit of 3 medications as a guest. Save your account now to keep your records!',
+              );
+              return;
+            }
             UIHelpers.showErrorSnackBar(context, context.l10n('med_limit_msg'));
             Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
             return;

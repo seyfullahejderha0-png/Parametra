@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../auth/services/auth_service.dart';
 import '../models/subscription_model.dart';
 import 'iap_service.dart';
@@ -149,8 +150,15 @@ class SubscriptionService {
 
   // Günlük/Toplam işlem sınırı kontrolü için yardımcı metodlar
   Future<bool> canAddEntry(String collectionName) async {
-    final subData = await getSubscriptionData().first;
-    if (subData.isUnlimited) return true;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isAnonymous = currentUser?.isAnonymous ?? false;
+
+    // Misafir kullanıcı değilse normal abonelik kontrolünü yap
+    if (!isAnonymous) {
+      final subData = await getSubscriptionData().first;
+      if (subData.isUnlimited) return true;
+    }
+    
     if (collectionName == 'smoking') return true;
 
     final today = DateTime.now();

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -78,6 +79,10 @@ class AIAssistantService {
   CollectionReference get _messagesColl => _firestore.collection('users').doc(userId ?? 'anonymous').collection('ai_messages');
 
   int getDailyLimit(SubscriptionType type) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && user.isAnonymous) {
+      return 2;
+    }
     switch (type) {
       case SubscriptionType.platinum:
       case SubscriptionType.platinumFamily:

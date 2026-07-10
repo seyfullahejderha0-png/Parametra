@@ -83,6 +83,69 @@ class AuthService {
     }
   }
 
+  // Anonim Giriş (Misafir Modu)
+  Future<UserCredential?> signInAnonymously() async {
+    try {
+      return await _auth.signInAnonymously();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Anonim Hesabı Google ile Birleştir
+  Future<UserCredential?> linkWithGoogle() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return null;
+
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      return await user.linkWithCredential(credential);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Anonim Hesabı Apple ile Birleştir
+  Future<UserCredential?> linkWithApple() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return null;
+
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: credential.identityToken,
+        accessToken: credential.authorizationCode,
+      );
+
+      final userCredential = await user.linkWithCredential(oauthCredential);
+
+      if (credential.givenName != null || credential.familyName != null) {
+        final displayName = '${credential.givenName ?? ''} ${credential.familyName ?? ''}'.trim();
+        if (displayName.isNotEmpty) {
+          await userCredential.user?.updateDisplayName(displayName);
+        }
+      }
+
+      return userCredential;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // Çıkış Yap
   Future<void> signOut() async {
     await _auth.signOut();

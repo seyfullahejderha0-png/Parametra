@@ -144,7 +144,10 @@ class ProfileService {
       if (!doc.exists || (doc.data() as Map<String, dynamic>?)?['firstName'] == null || ((doc.data() as Map<String, dynamic>?)?['firstName'] as String).isEmpty) {
         String firstName = '';
         String lastName = '';
-        if (user.displayName != null && user.displayName!.isNotEmpty) {
+        if (user.isAnonymous) {
+          firstName = 'Guest';
+          lastName = 'User';
+        } else if (user.displayName != null && user.displayName!.isNotEmpty) {
           final parts = user.displayName!.split(' ');
           firstName = parts.first;
           if (parts.length > 1) {

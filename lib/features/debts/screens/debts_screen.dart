@@ -1,4 +1,5 @@
 import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../widgets/debt_report_widget.dart';
@@ -101,6 +102,19 @@ class _DebtsScreenState extends ConsumerState<DebtsScreen> {
           onPressed: () async {
             final canAdd = await ref.read(subscriptionServiceProvider).canAddEntry('debts');
             if (!canAdd && mounted) {
+              final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+              if (isAnonymous) {
+                await UIHelpers.showGuestLimitDialog(
+                  context: context,
+                  title: Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'Verilerini Yedekle 🚀'
+                      : 'Backup Your Data 🚀',
+                  description: Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'Misafir modunda 3 borç limitine ulaştın. Girdiğin borç ve alacak kayıtlarını kaybetmemek için hesabını şimdi kaydet!'
+                      : 'You reached the limit of 3 debts as a guest. Save your account now to keep your records!',
+                );
+                return;
+              }
               UIHelpers.showErrorSnackBar(context, context.l10n('form_error_msg'));
               Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
               return;

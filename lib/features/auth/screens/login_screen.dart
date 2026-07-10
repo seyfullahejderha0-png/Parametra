@@ -64,6 +64,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _signInAnonymously() async {
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authServiceProvider).signInAnonymously();
+    } catch (e) {
+      if (mounted) UIHelpers.showErrorSnackBar(context, 'Hata: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -203,6 +214,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onTap: _signInWithApple,
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: _signInAnonymously,
+                    child: Text(
+                      Localizations.localeOf(context).languageCode == 'tr'
+                          ? 'Kayıt Olmadan Keşfet 🚀'
+                          : 'Explore as Guest 🚀',
+                      style: const TextStyle(
+                        color: AppColors.aiColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(

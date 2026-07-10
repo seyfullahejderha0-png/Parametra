@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/app_colors.dart';
+import '../../features/auth/widgets/registration_prompt_dialog.dart';
 
 class UIHelpers {
   static void showSuccessSnackBar(BuildContext context, String message) {
@@ -120,5 +122,20 @@ class UIHelpers {
         child: CircularProgressIndicator(color: Colors.greenAccent),
       ),
     );
+  }
+
+  static Future<bool> showGuestLimitDialog({
+    required BuildContext context,
+    required String title,
+    required String description,
+  }) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => RegistrationPromptDialog(
+        title: title,
+        description: description,
+      ),
+    );
+    return result ?? false;
   }
 }

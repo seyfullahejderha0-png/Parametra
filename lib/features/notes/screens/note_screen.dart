@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
@@ -125,6 +126,19 @@ class _NoteScreenState extends ConsumerState<NoteScreen> with SingleTickerProvid
           if (_tabController.index == 0) {
             final canAdd = await ref.read(subscriptionServiceProvider).canAddEntry('notes');
             if (!canAdd && mounted) {
+              final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+              if (isAnonymous) {
+                await UIHelpers.showGuestLimitDialog(
+                  context: context,
+                  title: Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'Verilerini Yedekle 🚀'
+                      : 'Backup Your Data 🚀',
+                  description: Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'Misafir modunda günlük 3 not limitine ulaştın. Notlarını kaybetmemek ve sınırsız devam etmek için hesabını şimdi kaydet!'
+                      : 'You reached the daily limit of 3 notes as a guest. Save your account now to keep your records!',
+                );
+                return;
+              }
               UIHelpers.showErrorSnackBar(context, context.l10n('note_limit_msg') ?? 'Not ekleme limitine ulaştınız');
               Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
               return;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
@@ -181,6 +182,19 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
           onPressed: () async {
             final canAdd = await ref.read(subscriptionServiceProvider).canAddEntry('goals');
             if (!canAdd && mounted) {
+              final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+              if (isAnonymous) {
+                await UIHelpers.showGuestLimitDialog(
+                  context: context,
+                  title: Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'Verilerini Yedekle 🚀'
+                      : 'Backup Your Data 🚀',
+                  description: Localizations.localeOf(context).languageCode == 'tr'
+                      ? 'Misafir modunda 3 hedef limitine ulaştın. Girdiğin hedefleri kaybetmemek ve sınırsız devam etmek için hesabını şimdi kaydet!'
+                      : 'You reached the limit of 3 goals as a guest. Save your account now to keep your records!',
+                );
+                return;
+              }
               UIHelpers.showErrorSnackBar(context, context.l10n('goal_limit_msg'));
               Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
               return;

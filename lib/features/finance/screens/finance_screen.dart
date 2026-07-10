@@ -1,4 +1,5 @@
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/widgets/glass_card.dart';
 import '../services/finance_service.dart';
@@ -132,6 +133,19 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> with SingleTicker
                   onPressed: () async {
                     final canAdd = await ref.read(subscriptionServiceProvider).canAddEntry('finance');
                     if (!canAdd && mounted) {
+                      final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+                      if (isAnonymous) {
+                        await UIHelpers.showGuestLimitDialog(
+                          context: context,
+                          title: Localizations.localeOf(context).languageCode == 'tr'
+                              ? 'Verilerini Yedekle 🚀'
+                              : 'Backup Your Data 🚀',
+                          description: Localizations.localeOf(context).languageCode == 'tr'
+                              ? 'Misafir modunda 3 işlem limitine ulaştın. Girdiğin finans hareketlerini kaybetmemek ve sınırsız devam etmek için hesabını şimdi kaydet!'
+                              : 'You reached the limit of 3 entries as a guest. Save your account now to keep your financial records and unlock unlimited access!',
+                        );
+                        return;
+                      }
                       UIHelpers.showErrorSnackBar(context, context.l10n('premium_needed_msg'));
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
                       return;
@@ -159,6 +173,19 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> with SingleTicker
                   onPressed: () async {
                     final canAdd = await ref.read(subscriptionServiceProvider).canAddEntry('finance');
                     if (!canAdd && mounted) {
+                      final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+                      if (isAnonymous) {
+                        await UIHelpers.showGuestLimitDialog(
+                          context: context,
+                          title: Localizations.localeOf(context).languageCode == 'tr'
+                              ? 'Verilerini Yedekle 🚀'
+                              : 'Backup Your Data 🚀',
+                          description: Localizations.localeOf(context).languageCode == 'tr'
+                              ? 'Misafir modunda 3 işlem limitine ulaştın. Girdiğin finans hareketlerini kaybetmemek ve sınırsız devam etmek için hesabını şimdi kaydet!'
+                              : 'You reached the limit of 3 entries as a guest. Save your account now to keep your financial records and unlock unlimited access!',
+                        );
+                        return;
+                      }
                       UIHelpers.showErrorSnackBar(context, context.l10n('premium_needed_msg'));
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
                       return;

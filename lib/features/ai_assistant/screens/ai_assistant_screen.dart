@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -71,6 +72,19 @@ class _AIAssistantScreenState extends ConsumerState<AIAssistantScreen> {
     final allowed = await ref.read(aiAssistantServiceProvider).checkAndIncrementAIUsage(limit);
     if (!allowed) {
       if (mounted) {
+        final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+        if (isAnonymous) {
+          await UIHelpers.showGuestLimitDialog(
+            context: context,
+            title: Localizations.localeOf(context).languageCode == 'tr'
+                ? 'Pai Asistan ile Sınırsız Konuş 🚀'
+                : 'Unlimited AI Chat with Pai 🚀',
+            description: Localizations.localeOf(context).languageCode == 'tr'
+                ? 'Misafir modunda günlük AI limitine ulaştın. Sohbetine kaldığın yerden devam etmek ve verilerini senkronize etmek için hesabını şimdi kaydet!'
+                : 'You reached the daily limit of AI messages as a guest. Save your account now to keep chatting with Pai and sync your data!',
+          );
+          return;
+        }
         UIHelpers.showErrorSnackBar(context, context.l10n('ai_limit_reached_msg'));
       }
       return;

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -105,6 +106,19 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       // Başlat
       final canAdd = await ref.read(subscriptionServiceProvider).canAddEntry('health');
       if (!canAdd && mounted) {
+        final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+        if (isAnonymous) {
+          await UIHelpers.showGuestLimitDialog(
+            context: context,
+            title: Localizations.localeOf(context).languageCode == 'tr'
+                ? 'Verilerini Yedekle 🚀'
+                : 'Backup Your Data 🚀',
+            description: Localizations.localeOf(context).languageCode == 'tr'
+                ? 'Misafir modunda günlük 3 sağlık aktivitesi limitine ulaştın. Aktivitelerini kaybetmemek ve sınırsız devam etmek için hesabını şimdi kaydet!'
+                : 'You reached the daily limit of 3 health logs as a guest. Save your account now to keep your records!',
+          );
+          return;
+        }
         UIHelpers.showErrorSnackBar(context, context.l10n('premium_needed_msg'));
         Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
         return;
@@ -448,6 +462,19 @@ class _HealthScreenState extends ConsumerState<HealthScreen> {
       onPressed: () async {
         final canAdd = await ref.read(subscriptionServiceProvider).canAddEntry('health');
         if (!canAdd && mounted) {
+          final isAnonymous = FirebaseAuth.instance.currentUser?.isAnonymous ?? false;
+          if (isAnonymous) {
+            await UIHelpers.showGuestLimitDialog(
+              context: context,
+              title: Localizations.localeOf(context).languageCode == 'tr'
+                  ? 'Verilerini Yedekle 🚀'
+                  : 'Backup Your Data 🚀',
+              description: Localizations.localeOf(context).languageCode == 'tr'
+                  ? 'Misafir modunda günlük 3 sağlık/su aktivitesi limitine ulaştın. Kayıtlarını kaybetmemek ve sınırsız devam etmek için hesabını şimdi kaydet!'
+                  : 'You reached the daily limit of 3 health logs as a guest. Save your account now to keep your records!',
+            );
+            return;
+          }
           UIHelpers.showErrorSnackBar(context, context.l10n('daily_limit_reached'));
           Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionScreen()));
           return;
